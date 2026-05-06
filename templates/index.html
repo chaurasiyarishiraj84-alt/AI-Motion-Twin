@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Motion Twin</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #060810;
+    --bg2:       #0c0f1a;
+    --bg3:       #111520;
+    --border:    #1a2040;
+    --cyan:      #00e5ff;
+    --green:     #00ff9d;
+    --amber:     #ffb300;
+    --red:       #ff3d6b;
+    --muted:     #3a4468;
+    --text:      #c8d0e8;
+    --text-dim:  #5a6890;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-ui:   'Barlow', sans-serif;
+    --glow-c:    0 0 12px rgba(0,229,255,.45);
+    --glow-g:    0 0 12px rgba(0,255,157,.45);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 9999;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,.06) 2px, rgba(0,0,0,.06) 4px
+    );
+    pointer-events: none;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon {
+    width: 34px; height: 34px;
+    border: 2px solid var(--cyan); border-radius: 8px;
+    display: grid; place-items: center;
+    box-shadow: var(--glow-c); font-size: 18px;
+  }
+  .logo-text {
+    font-family: var(--font-mono); font-size: 1rem;
+    color: var(--cyan); letter-spacing: .12em;
+    text-shadow: var(--glow-c);
+  }
+  .logo-sub {
+    font-size: .65rem; color: var(--text-dim);
+    letter-spacing: .18em; text-transform: uppercase; margin-top: 1px;
+  }
+  .header-badges { display: flex; gap: 10px; align-items: center; }
+  .badge {
+    font-family: var(--font-mono); font-size: .7rem;
+    padding: 4px 10px; border-radius: 4px;
+    border: 1px solid var(--border); color: var(--text-dim); letter-spacing: .08em;
+  }
+  .badge.live {
+    border-color: var(--green); color: var(--green);
+    box-shadow: var(--glow-g); animation: pulse-badge 2s ease-in-out infinite;
+  }
+  @keyframes pulse-badge { 0%,100%{opacity:1} 50%{opacity:.55} }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    height: calc(100vh - 65px);
+  }
+
+  .video-panel {
+    display: flex; flex-direction: column;
+    padding: 20px; gap: 16px;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .video-wrapper {
+    position: relative; flex: 1;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border); background: #000;
+    min-height: 0;
+  }
+  .video-wrapper img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .video-wrapper::before, .video-wrapper::after {
+    content: ''; position: absolute;
+    width: 22px; height: 22px; z-index: 2; pointer-events: none;
+  }
+  .video-wrapper::before {
+    top: 10px; left: 10px;
+    border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan);
+    box-shadow: -2px -2px 8px rgba(0,229,255,.3);
+  }
+  .video-wrapper::after {
+    bottom: 10px; right: 10px;
+    border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan);
+    box-shadow: 2px 2px 8px rgba(0,229,255,.3);
+  }
+  .video-overlay-label {
+    position: absolute; top: 18px; right: 18px;
+    font-family: var(--font-mono); font-size: .65rem;
+    color: var(--cyan); letter-spacing: .12em; opacity: .7; z-index: 3;
+  }
+
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .btn {
+    font-family: var(--font-mono); font-size: .72rem;
+    letter-spacing: .1em; padding: 8px 18px;
+    border-radius: 6px; border: 1px solid var(--muted);
+    background: transparent; color: var(--text-dim);
+    cursor: pointer; transition: all .18s; text-transform: uppercase;
+  }
+  .btn:hover { border-color: var(--text-dim); color: var(--text); }
+  .btn.active      { border-color: var(--cyan);  color: var(--cyan);  box-shadow: 0 0 10px rgba(0,229,255,.25); }
+  .btn.active-green{ border-color: var(--green); color: var(--green); box-shadow: 0 0 10px rgba(0,255,157,.25); }
+  .btn.active-amber{ border-color: var(--amber); color: var(--amber); box-shadow: 0 0 10px rgba(255,179,0,.25); }
+
+  .upload-label {
+    font-family: var(--font-mono); font-size: .72rem;
+    letter-spacing: .1em; padding: 8px 18px;
+    border-radius: 6px; border: 1px dashed var(--muted);
+    color: var(--text-dim); cursor: pointer; transition: all .18s; text-transform: uppercase;
+  }
+  .upload-label:hover { border-color: var(--amber); color: var(--amber); }
+  #file-input { display: none; }
+  .upload-status {
+    font-family: var(--font-mono); font-size: .65rem;
+    color: var(--amber); opacity: 0; transition: opacity .3s;
+  }
+  .upload-status.visible { opacity: 1; }
+
+  .sidebar {
+    display: flex; flex-direction: column;
+    overflow-y: auto; background: var(--bg2);
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .panel { border-bottom: 1px solid var(--border); padding: 18px 20px; }
+  .panel-title {
+    font-family: var(--font-mono); font-size: .6rem;
+    letter-spacing: .2em; color: var(--text-dim);
+    text-transform: uppercase; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .action-display { text-align: center; padding: 10px 0 6px; }
+  .action-label {
+    font-family: var(--font-mono); font-size: 1.5rem;
+    color: var(--green); text-shadow: var(--glow-g);
+    letter-spacing: .08em; transition: all .3s;
+  }
+  .action-sub {
+    font-size: .65rem; color: var(--text-dim);
+    letter-spacing: .15em; text-transform: uppercase; margin-top: 4px;
+  }
+
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.03);
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-key { font-family: var(--font-mono); font-size: .65rem; color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase; }
+  .stat-val { font-family: var(--font-mono); font-size: .8rem; color: var(--cyan); text-shadow: var(--glow-c); }
+  .stat-val.green { color: var(--green); text-shadow: var(--glow-g); }
+  .stat-val.amber { color: var(--amber); text-shadow: none; }
+
+  .metric-item { margin-bottom: 14px; }
+  .metric-item:last-child { margin-bottom: 0; }
+  .metric-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .metric-name { font-family: var(--font-mono); font-size: .62rem; color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase; }
+  .metric-value { font-family: var(--font-mono); font-size: .72rem; color: var(--cyan); }
+  .bar-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 2px; transition: width .4s ease; background: linear-gradient(90deg, var(--cyan), var(--green)); box-shadow: 0 0 6px rgba(0,229,255,.5); }
+  .bar-fill.energy   { background: linear-gradient(90deg, var(--amber), var(--red)); box-shadow: 0 0 6px rgba(255,179,0,.5); }
+  .bar-fill.symmetry { background: linear-gradient(90deg, var(--green), var(--cyan)); box-shadow: 0 0 6px rgba(0,255,157,.5); }
+
+  .person-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .person-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1.5px solid var(--muted);
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-size: .65rem; color: var(--text-dim);
+    transition: all .3s;
+  }
+  .person-dot.active { border-color: var(--cyan); color: var(--cyan); box-shadow: var(--glow-c); background: rgba(0,229,255,.06); }
+
+  @keyframes flicker { 0%,95%,100%{opacity:1} 96%{opacity:.7} 97%{opacity:1} 98%{opacity:.5} }
+  .video-wrapper { animation: flicker 14s infinite; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⬡</div>
+    <div>
+      <div class="logo-text">AI MOTION TWIN</div>
+      <div class="logo-sub">Real-time Pose Intelligence</div>
+    </div>
+  </div>
+  <div class="header-badges">
+    <span class="badge" id="source-badge">WEBCAM</span>
+    <span class="badge" id="fps-badge">-- FPS</span>
+    <span class="badge live">● LIVE</span>
+  </div>
+</header>
+
+<div class="layout">
+
+  <div class="video-panel">
+    <div class="video-wrapper">
+      <img id="stream" src="/video" alt="Live feed">
+      <div class="video-overlay-label">STREAM::MJPEG</div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="btn-overlay" onclick="toggle('overlay')">Overlay</button>
+      <button class="btn" id="btn-heatmap" onclick="toggle('heatmap')">Heatmap</button>
+      <button class="btn" id="btn-multi"   onclick="toggle('multi')">Multi-Person</button>
+      <button class="btn active-amber" onclick="useWebcam()">⬡ Webcam</button>
+      <label class="upload-label" for="file-input">⬆ Upload Video</label>
+      <input id="file-input" type="file" accept="video/*" onchange="uploadVideo(this)">
+      <span class="upload-status" id="upload-status"></span>
+    </div>
+  </div>
+
+  <div class="sidebar">
+
+    <div class="panel">
+      <div class="panel-title">Detected Action</div>
+      <div class="action-display">
+        <div class="action-label" id="action-label">IDLE</div>
+        <div class="action-sub">Primary Subject</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">System</div>
+      <div class="stat-row">
+        <span class="stat-key">FPS</span>
+        <span class="stat-val" id="fps-val">--</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">People</span>
+        <span class="stat-val green" id="count-val">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Source</span>
+        <span class="stat-val amber" id="src-val">Webcam</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Tracking</div>
+      <div class="person-grid" id="person-grid">
+        <div class="person-dot" data-pid="1">P1</div>
+        <div class="person-dot" data-pid="2">P2</div>
+        <div class="person-dot" data-pid="3">P3</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Metrics</div>
+      <div class="metric-item">
+        <div class="metric-header">
+          <span class="metric-name">Speed</span>
+          <span class="metric-value" id="m-speed">--</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="bar-speed" style="width:0%"></div></div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-header">
+          <span class="metric-name">Energy</span>
+          <span class="metric-value" id="m-energy">--</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill energy" id="bar-energy" style="width:0%"></div></div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-header">
+          <span class="metric-name">Symmetry</span>
+          <span class="metric-value" id="m-symmetry">--</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill symmetry" id="bar-symmetry" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Modes</div>
+      <div class="stat-row">
+        <span class="stat-key">Overlay</span>
+        <span class="stat-val" id="state-overlay">OFF</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Heatmap</span>
+        <span class="stat-val" id="state-heatmap">OFF</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-key">Multi-Person</span>
+        <span class="stat-val" id="state-multi">OFF</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const toggleState = { overlay: false, heatmap: false, multi: false };
+  const btnMap = {
+    overlay: { btn: 'btn-overlay', endpoint: '/toggle-overlay', activeClass: 'active' },
+    heatmap: { btn: 'btn-heatmap', endpoint: '/toggle-heatmap', activeClass: 'active-green' },
+    multi:   { btn: 'btn-multi',   endpoint: '/toggle-multi',   activeClass: 'active-amber' },
+  };
+
+  async function toggle(key) {
+    await fetch(btnMap[key].endpoint);
+    toggleState[key] = !toggleState[key];
+    document.getElementById(btnMap[key].btn)
+      .classList.toggle(btnMap[key].activeClass, toggleState[key]);
+  }
+
+  async function useWebcam() {
+    await fetch('/use-webcam', { method: 'POST' });
+    document.getElementById('src-val').textContent = 'Webcam';
+    document.getElementById('source-badge').textContent = 'WEBCAM';
+    document.getElementById('upload-status').classList.remove('visible');
+    refreshStream();
+  }
+
+  async function uploadVideo(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const status = document.getElementById('upload-status');
+    status.textContent = 'Uploading…';
+    status.classList.add('visible');
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) {
+      status.textContent = '✗ ' + data.error;
+    } else {
+      status.textContent = '✓ ' + file.name;
+      document.getElementById('src-val').textContent =
+        file.name.length > 16 ? file.name.slice(0, 14) + '…' : file.name;
+      document.getElementById('source-badge').textContent = 'FILE';
+      refreshStream();
+    }
+  }
+
+  function refreshStream() {
+    const img = document.getElementById('stream');
+    img.src = '/video?' + Date.now();
+  }
+
+  async function pollStatus() {
+    try {
+      const d = await fetch('/status').then(r => r.json());
+
+      document.getElementById('fps-badge').textContent = d.fps + ' FPS';
+      document.getElementById('action-label').textContent = (d.action || 'IDLE').toUpperCase();
+      document.getElementById('fps-val').textContent    = d.fps;
+      document.getElementById('count-val').textContent  = d.person_count;
+      document.getElementById('src-val').textContent    = d.source === 'webcam' ? 'Webcam' : 'Video';
+
+      document.querySelectorAll('.person-dot').forEach(dot => {
+        dot.classList.toggle('active', parseInt(dot.dataset.pid) <= d.person_count);
+      });
+
+      if (d.metrics) {
+        const { speed = 0, energy = 0, symmetry = 0 } = d.metrics;
+        document.getElementById('m-speed').textContent    = speed;
+        document.getElementById('m-energy').textContent   = energy;
+        document.getElementById('m-symmetry').textContent = symmetry;
+        document.getElementById('bar-speed').style.width    = Math.min(100, speed / 3) + '%';
+        document.getElementById('bar-energy').style.width   = Math.min(100, energy) + '%';
+        document.getElementById('bar-symmetry').style.width = Math.min(100, symmetry) + '%';
+      }
+
+      document.getElementById('state-overlay').textContent = d.overlay ? 'ON' : 'OFF';
+      document.getElementById('state-heatmap').textContent = d.heatmap ? 'ON' : 'OFF';
+      document.getElementById('state-multi').textContent   = d.multi   ? 'ON' : 'OFF';
+
+      document.getElementById('btn-overlay').classList.toggle('active',        d.overlay);
+      document.getElementById('btn-heatmap').classList.toggle('active-green',  d.heatmap);
+      document.getElementById('btn-multi').classList.toggle('active-amber',    d.multi);
+      Object.assign(toggleState, { overlay: d.overlay, heatmap: d.heatmap, multi: d.multi });
+
+    } catch (e) {}
+  }
+
+  setInterval(pollStatus, 600);
+  pollStatus();
+</script>
+</body>
+</html>
