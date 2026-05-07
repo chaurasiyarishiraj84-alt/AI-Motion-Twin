@@ -1,19 +1,8 @@
-"""
-motion_smoother.py
-------------------
-Per-person, per-joint Exponential Moving Average smoother with
-confidence-weighted blending and missing-joint interpolation.
-
-Each person has an isolated state, so multi-person tracking stays stable
-when people enter or leave the frame.
-"""
-
 from __future__ import annotations
 
 from typing import Dict, Optional
 
 import numpy as np
-
 
 class EMASmoother:
     """Confidence-weighted EMA over (N, 4) landmark arrays."""
