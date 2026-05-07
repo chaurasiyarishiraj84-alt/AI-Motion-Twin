@@ -34,7 +34,7 @@ from skeleton_builder import (
 from utils import FpsCounter, angle_deg
 
 
-# ── Action classifier ─────────────────────────────────────────────────────────
+#  Action classifier 
 
 class ActionClassifier:
     def __init__(self, window: int = 8) -> None:
@@ -78,7 +78,7 @@ class ActionClassifier:
         return max(set(self._buf), key=self._buf.count)
 
 
-# ── Metrics ───────────────────────────────────────────────────────────────────
+#  Metrics 
 
 def compute_metrics(lm: np.ndarray, vel: np.ndarray) -> Dict[str, float]:
     speed = float(np.linalg.norm(vel[:33, :2], axis=1).mean())
@@ -98,7 +98,7 @@ def compute_metrics(lm: np.ndarray, vel: np.ndarray) -> Dict[str, float]:
     }
 
 
-# ── Main run loop ─────────────────────────────────────────────────────────────
+# Main run loop 
 
 def run(
     source: int | str,
@@ -115,8 +115,7 @@ def run(
     classifier  = ActionClassifier()
     fps         = FpsCounter()
 
-    # FIX 1 — keep two *separate*, concretely-typed detector variables so each
-    # call-site is unambiguous and Pylance no longer red-lines 'detections'.
+
     single_pose: Optional[PoseDetector]      = None
     multi_pose:  Optional[MultiPersonPoseDetector] = None
     if multi:
@@ -139,10 +138,10 @@ def run(
             # FIX 1 — each branch calls a concretely-typed variable; no union
             detections: List[np.ndarray]
             if multi and multi_pose is not None:
-                detections = multi_pose.detect(rgb)          # List[ndarray] ✓
+                detections = multi_pose.detect(rgb)          
             elif single_pose is not None:
-                raw = single_pose.detect(rgb)                # Optional[ndarray]
-                detections = [raw] if raw is not None else []  # List[ndarray] ✓
+                raw = single_pose.detect(rgb)               
+                detections = [raw] if raw is not None else []  
             else:
                 detections = []
 
@@ -184,8 +183,7 @@ def run(
             if record_path:
                 if writer is None:
                     h, w = composite.shape[:2]
-                    # FIX 2 — VideoWriter_fourcc is missing from opencv stubs.
-                    # getattr() bypasses stub validation; runtime behaviour is identical.
+                   
                     fourcc = getattr(cv2, "VideoWriter_fourcc")(*"mp4v")
                     writer = cv2.VideoWriter(record_path, fourcc, 24.0, (w, h))
                 writer.write(composite)
@@ -204,7 +202,7 @@ def run(
     cv2.destroyAllWindows()
 
 
-# ── CLI ───────────────────────────────────────────────────────────────────────
+# CLI 
 
 def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="AI Motion Twin")
