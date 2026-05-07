@@ -1,30 +1,3 @@
-"""
-api.py  —  AI Motion Twin web server (all bugs fixed)
------------------------------------------------------
-
-Fixes applied
--------------
-BUG 1  vel_calc.update() was called twice per frame (line 207 + 220 in old version).
-       Second call computed velocity between identical frames → always 0 → heatmap dead.
-       Fix: cache `primary_vel` from the processing loop; pass it to draw_heatmap.
-
-BUG 2  Every /video browser tab opened a new cv2.VideoCapture + new MediaPipe instance.
-       Fix: one background daemon thread owns the entire pipeline and writes the latest
-       JPEG to a shared bytes variable. /video clients just read from that variable.
-       One camera, one MediaPipe, unlimited viewers.
-
-BUG 3  After src.open() raised RuntimeError, src._cap was None.  On the next loop
-       iteration current_source was already set so re-init was skipped, then
-       src._cap.read() raised AttributeError.
-       Fix: reset current_source to None on open failure so the next iteration retries.
-
-BUG 4  python-multipart was missing from requirements → UploadFile silently failed.
-       Fix: add python-multipart to requirements.txt.
-
-BUG 5  fastapi and uvicorn were missing from requirements.txt.
-       Fix: add fastapi and uvicorn[standard] to requirements.txt.
-"""
-
 from __future__ import annotations
 
 import shutil
@@ -56,14 +29,13 @@ from skeleton_builder import (
 )
 from utils import FpsCounter, angle_deg
 
-# ── App ───────────────────────────────────────────────────────────────────────
-
+#  App 
 app = FastAPI(title="AI Motion Twin")
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 UPLOAD_DIR    = Path(tempfile.mkdtemp(prefix="motion_twin_"))
 
-# ── Shared state (guarded by state_lock) ──────────────────────────────────────
+#  Shared state (guarded by state_lock)
 
 state: Dict = {
     "overlay":      False,
@@ -77,15 +49,12 @@ state: Dict = {
 }
 state_lock = threading.Lock()
 
-# ── Shared JPEG frame buffer (written by pipeline thread, read by /video) ─────
-# BUG 2 FIX: one thread owns the pipeline; /video clients read from this buffer.
-
 _latest_frame: bytes = b""
 _frame_lock   = threading.Lock()
 _frame_event  = threading.Event()   # set whenever a new frame is ready
 
 
-# ── Action classifier ─────────────────────────────────────────────────────────
+# Action classifier 
 
 class ActionClassifier:
     def __init__(self, window: int = 8) -> None:
@@ -147,10 +116,7 @@ def compute_metrics(lm: np.ndarray, vel: np.ndarray) -> Dict:
     }
 
 
-# ── Pipeline thread (singleton) ───────────────────────────────────────────────
-# BUG 2 FIX: exactly one thread runs the camera + pose pipeline. It writes
-# compressed JPEG bytes into _latest_frame; /video clients only read from there.
-
+#  Pipeline thread (singleton) 
 def _pipeline_loop() -> None:
     """Background daemon that owns capture + pose and feeds _latest_frame."""
     global _latest_frame
@@ -175,7 +141,7 @@ def _pipeline_loop() -> None:
             show_heatmap = state["heatmap"]
             multi        = state["multi"]
 
-        # ── Re-init pipeline when source or mode changes ──────────────────
+        #  Re-init pipeline when source or mode changes 
         if source != current_source or multi != current_multi:
             if pose_ctx is not None:
                 pose_ctx.close()
@@ -184,8 +150,6 @@ def _pipeline_loop() -> None:
             smoother.reset()
             vel_calc.reset()
 
-            # BUG 3 FIX: leave current_source as None until open succeeds,
-            # so failed sources are retried on the next iteration.
             current_source = None
             current_multi  = multi
 
@@ -207,9 +171,7 @@ def _pipeline_loop() -> None:
                 time.sleep(1)
                 continue
 
-        # ── Read one frame ────────────────────────────────────────────────
-        # src and src._cap are both Optional — assert both so Pylance narrows
-        # them to non-None before calling .read() / .set()
+           
         assert src is not None
         cap = src._cap
         assert cap is not None
@@ -226,7 +188,7 @@ def _pipeline_loop() -> None:
         frame_bgr = resize_keep_aspect(frame_bgr, 960)
         rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
 
-        # ── Pose detection ────────────────────────────────────────────────
+        # Pose detection 
         assert pose_ctx is not None
         if multi:
             detections = pose_ctx.detect(rgb)
@@ -252,14 +214,14 @@ def _pipeline_loop() -> None:
                 primary_action  = classifier.classify(smoothed, vel)
                 primary_vel     = vel   # cache for heatmap — BUG 1 FIX
 
-        # ── Build composite frame ─────────────────────────────────────────
+        #  Build composite frame 
         stick_canvas = (
             frame_bgr.copy()
             if overlay
             else make_blank_canvas(*frame_bgr.shape[1::-1])
         )
 
-        # BUG 1 FIX: use cached primary_vel instead of calling vel_calc.update again
+       
         if show_heatmap and skeletons:
             draw_heatmap(stick_canvas, skeletons[0], primary_vel)
 
@@ -293,7 +255,7 @@ _pipeline_thread = threading.Thread(target=_pipeline_loop, daemon=True, name="pi
 _pipeline_thread.start()
 
 
-# ── MJPEG generator (reads from shared buffer, safe for multiple clients) ─────
+# MJPEG generator (reads from shared buffer, safe for multiple clients) 
 
 def _mjpeg_generator():
     """Yield MJPEG boundary frames. Multiple /video clients share one pipeline."""
@@ -307,7 +269,7 @@ def _mjpeg_generator():
             yield BOUNDARY + frame + b"\r\n"
 
 
-# ── HTTP routes ───────────────────────────────────────────────────────────────
+# HTTP routes 
 
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -316,7 +278,7 @@ def home():
 
 @app.get("/video")
 def video():
-    # BUG 2 FIX: no new pipeline here — just stream from the shared buffer
+    
     return StreamingResponse(
         _mjpeg_generator(),
         media_type="multipart/x-mixed-replace; boundary=frame",
@@ -361,7 +323,7 @@ def status():
 
 @app.post("/upload")
 async def upload_video(file: UploadFile = File(...)):
-    filename = file.filename or ""   # file.filename is Optional[str] in newer Starlette
+    filename = file.filename or ""   
     suffix = Path(filename).suffix.lower()
     if suffix not in {".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v"}:
         return JSONResponse({"error": f"Unsupported format: {suffix}"}, status_code=400)
