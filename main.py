@@ -1,20 +1,3 @@
-"""
-main.py  —  AI Motion Twin entry point  (red-line errors fixed)
----------------------------------------------------------------
-
-FIX 1  detections  red line  (union-type ambiguity)
-       pose_ctx was typed as MultiPersonPoseDetector | PoseDetector.
-       Calling .detect() on a union makes Pylance flag the result as
-       List[ndarray] | ndarray | None, so 'detections' was ambiguous.
-       Fix: keep two *separate* typed variables (single_pose / multi_pose)
-       and call the right one directly, so each branch is unambiguous.
-
-FIX 2  VideoWriter_fourcc  red line  (missing from opencv stubs)
-       cv2.VideoWriter_fourcc exists at runtime but not in opencv-stubs.
-       Fix: access it via getattr so Pylance skips stub validation.
-       Equivalent at runtime, no red line.
-"""
-
 from __future__ import annotations
 
 import argparse
