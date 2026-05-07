@@ -1,12 +1,3 @@
-"""
-input_handler.py
-----------------
-Wraps OpenCV's VideoCapture for both webcam and file input.
-Handles graceful open/close, optional resize, and exposes a simple
-iterator interface so the rest of the pipeline doesn't have to care
-about the source.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
