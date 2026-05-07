@@ -1,4 +1,3 @@
-````md
 # 🚀 AI Motion Twin
 
 <p align="center">
@@ -362,10 +361,17 @@ MIT License
 
 ## 👨‍💻 Author
 
-**Rishiraj Chaurasiya**
+**Rishiraj Chaurasiya**  
 B.Tech — Artificial Intelligence & Machine Learning
 
-GitHub: [https://github.com/chaurasiyarishiraj84-alt](https://github.com/chaurasiyarishiraj84-alt)
+GitHub: [https://github.com/chaurasiyarishiraj84-alt/AI-Motion-Twin](https://github.com/chaurasiyarishiraj84-alt/AI-Motion-Twin)
 
-```
-```
+---
+
+## ⭐ Support
+
+If you find this project useful:
+
+- ⭐ Star the repo
+- 🍴 Fork it
+- 📢 Share it
