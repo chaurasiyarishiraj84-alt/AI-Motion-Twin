@@ -12,10 +12,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 import mediapipe as mp
 import numpy as np
 
-# FIX 1 — declare as Any so mp_pose.Pose / mp_pose.POSE_CONNECTIONS etc.
-# are all treated as Any by Pylance. Without this, Pylance tries to validate
-# attribute access on the mediapipe stubs (which don't match 0.10.x runtime)
-# and red-lines every use of mp_pose.Pose.
+
 mp_pose: Any = mp.solutions.pose
 
 POSE_LANDMARK_COUNT = 33
@@ -37,8 +34,7 @@ class PoseDetector:
         min_tracking_confidence: float = 0.7,
         model_complexity: int = 1,
     ) -> None:
-        # FIX 1 (continued) — self._pose: Any so every downstream call
-        # (.process, .close) is also Any and never red-lined.
+        
         self._pose: Any = mp_pose.Pose(
             static_image_mode=False,
             model_complexity=model_complexity,
@@ -155,10 +151,6 @@ class PersonTracker:
                 ids[di] = self._next_id
                 self._next_id += 1
 
-        # FIX 3 — Pylance cannot narrow list subscripts inside comprehension
-        # guards (if ids[di] is not None doesn't narrow ids[di] in the key),
-        # so int(ids[di]) was still Optional[int] → red line.
-        # A plain for-loop lets Pylance narrow the local variable `pid` properly.
         new_tracks: Dict[int, np.ndarray] = {}
         for di, lm in enumerate(detections):
             pid = ids[di]           # pid: Optional[int]
