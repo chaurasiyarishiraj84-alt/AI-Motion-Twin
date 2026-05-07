@@ -1,123 +1,106 @@
-```md
+````md
 # 🚀 AI Motion Twin
 
-**Real-Time Human Pose Detection, Motion Analytics & Action Recognition System**
+<p align="center">
+  <b>Real-Time Human Pose Detection • Motion Analytics • Action Recognition</b><br>
+  <i>Transform video into intelligent motion insights with visualization, tracking, and ML-ready datasets</i>
+</p>
 
-A modular computer vision pipeline that converts live or recorded video into an intelligent motion analysis system with visualization, tracking, and ML dataset generation.
-
----
-
-## 📌 Table of Contents
-
-* [Overview](#-overview)
-* [Key Capabilities](#-key-capabilities)
-* [System Architecture](#-system-architecture)
-* [Project Structure](#-project-structure)
-* [Installation](#-installation)
-* [Configuration](#-configuration)
-* [Usage](#-usage)
-  * [Desktop Mode](#desktop-mode)
-  * [Web Mode (FastAPI)](#web-mode-fastapi)
-  * [Offline Analyzer](#offline-analyzer)
-* [Visualization Details](#-visualization-details)
-* [Dataset Schema](#-dataset-schema)
-* [Performance Considerations](#-performance-considerations)
-* [Common Issues & Fixes](#-common-issues--fixes)
-* [Tech Stack](#-tech-stack)
-* [Roadmap](#-roadmap)
-* [Contributing](#-contributing)
-* [License](#-license)
-* [Author](#-author)
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.9%2B-blue.svg">
+  <img src="https://img.shields.io/badge/OpenCV-4.9-green">
+  <img src="https://img.shields.io/badge/MediaPipe-0.10.14-orange">
+  <img src="https://img.shields.io/badge/FastAPI-Backend-teal">
+  <img src="https://img.shields.io/badge/License-MIT-lightgrey">
+</p>
 
 ---
 
-## 📖 Overview
+## 🎯 Overview
 
-AI Motion Twin is designed as a real-time AI system that bridges:
+AI Motion Twin is a real-time computer vision system that converts human motion into structured, analyzable data.
 
-* Computer Vision
-* Motion Analysis
-* Human Action Recognition
-* Data Engineering for ML
+It integrates:
 
-It supports:
+- 📷 Computer Vision  
+- 🧠 Motion Intelligence  
+- 🤖 Action Recognition  
+- 📊 ML Dataset Generation  
 
-* 🎥 Live webcam processing  
-* 🎬 Offline video analysis  
-* 🌐 Browser-based streaming via FastAPI  
+### 🔥 Supports:
+- 🎥 Live webcam processing  
+- 🎬 Video file analysis  
+- 🌐 Browser streaming via FastAPI  
 
 ---
 
-## ✨ Key Capabilities
+## ✨ Features
 
 ### 🔍 Pose Detection
-* 33-point human landmark detection (MediaPipe)
-* High-confidence tracking
-* Real-time performance (20–30 FPS)
+- 33-point human landmark detection (MediaPipe)
+- High-confidence real-time tracking
+- ~20–30 FPS performance
 
 ### 👥 Multi-Person Tracking
-* Up to 3 simultaneous people
-* Persistent ID assignment
-* Occlusion-tolerant tracking
+- Supports up to 3 individuals
+- Persistent ID assignment
+- Handles occlusion & re-entry
 
 ### ⚡ Motion Intelligence
-* EMA-based smoothing
-* Velocity & acceleration tracking
-* Energy computation (movement intensity)
-* Symmetry scoring (left vs right balance)
+- EMA-based smoothing
+- Velocity & acceleration tracking
+- Energy scoring (movement intensity)
+- Symmetry analysis (body balance)
 
-### 🎯 Action Recognition (Rule-Based)
-
+### 🎯 Action Recognition
 Detects:
-* Idle
-* Walking
-* Jumping
-* Squatting
-* Waving
-* T-Pose
-* Dancing
+- Idle  
+- Walking  
+- Jumping  
+- Squatting  
+- Waving  
+- T-Pose  
+- Dancing  
 
 ### 🎨 Visualization Engine
-* Stick figure rendering
-* Motion heatmap overlay
-* Side-by-side composite output
-* Real-time HUD (FPS + metrics)
+- Stick figure rendering
+- Motion heatmap overlay
+- Side-by-side output (video + skeleton)
+- Real-time HUD (FPS, metrics, actions)
 
 ### 📊 Dataset Generation
-* Frame-wise CSV output
-* ML-ready structured data
-* Suitable for:
-  * LSTM
-  * Transformers
-  * Classification models
+- Frame-by-frame CSV output
+- ML-ready structured format
+- Compatible with:
+  - LSTM
+  - Transformers
+  - Classification models
 
 ---
 
-## 🧠 System Architecture
+## 🧠 Architecture
 
 ```text
-Video Input (Webcam / File)
-        ↓
-Frame Processing (OpenCV)
-        ↓
-Pose Detection (MediaPipe)
-        ↓
-Joint Derivation (Extra Keypoints)
-        ↓
+Video Input
+   ↓
+OpenCV Processing
+   ↓
+MediaPipe Pose Detection
+   ↓
+Joint Processing
+   ↓
 Motion Smoothing (EMA)
-        ↓
-Velocity & Acceleration
-        ↓
-Person Tracking (Centroid Matching)
-        ↓
-Action Classification
-        ↓
-Rendering Engine (Skeleton + Heatmap)
-        ↓
-Output:
-    → Desktop UI
-    → Web Streaming (FastAPI)
-    → CSV Dataset
+   ↓
+Tracking (Multi-Person)
+   ↓
+Action Recognition
+   ↓
+Rendering Engine
+   ↓
+Outputs:
+  → Desktop UI
+  → Web Streaming
+  → CSV Dataset
 ````
 
 ---
@@ -126,10 +109,10 @@ Output:
 
 ```text
 AI_Motion_Twin/
-│
-├── main.py
-├── api.py
-│
+
+├── main.py                 # CLI entry
+├── api.py                  # FastAPI server
+
 ├── input_handler.py
 ├── pose_detector.py
 ├── skeleton_builder.py
@@ -137,12 +120,11 @@ AI_Motion_Twin/
 ├── renderer.py
 ├── offline_analyzer.py
 ├── utils.py
-│
+
 ├── templates/
-│   └── index.html
-│
-├── static/
-│
+│   └── index.html          # Required for web UI
+
+├── static/                 # Optional frontend assets
 ├── requirements.txt
 └── README.md
 ```
@@ -151,14 +133,14 @@ AI_Motion_Twin/
 
 ## ⚙️ Installation
 
-### 1️⃣ Create Virtual Environment
+### 1. Create Virtual Environment
 
 ```bash
-python -m venv venv311
-venv311\Scripts\activate
+python -m venv venv
+venv\Scripts\activate
 ```
 
-### 2️⃣ Install Dependencies
+### 2. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -166,7 +148,7 @@ pip install -r requirements.txt
 
 ---
 
-## 📦 Recommended Stable Dependencies
+## 📦 Recommended Versions
 
 ```txt
 opencv-python==4.9.0.80
@@ -177,17 +159,6 @@ fastapi>=0.110.0
 uvicorn[standard]>=0.29.0
 python-multipart>=0.0.9
 ```
-
----
-
-## ⚙️ Configuration
-
-| Parameter | Description         | Default |
-| --------- | ------------------- | ------- |
-| max_width | Frame resize width  | 960     |
-| multi     | Enable multi-person | False   |
-| overlay   | Draw on video       | False   |
-| heatmap   | Enable heatmap      | False   |
 
 ---
 
@@ -207,17 +178,15 @@ python main.py live --source 0 --multi --overlay --heatmap --record output.mp4
 
 ---
 
-### 🌐 Web Mode (FastAPI)
-
-Run server:
+### 🌐 Web Mode
 
 ```bash
 uvicorn api:app --reload
 ```
 
-Open:
+Open in browser:
 
-```
+```text
 http://127.0.0.1:8000
 ```
 
@@ -227,7 +196,7 @@ http://127.0.0.1:8000
 
 Create:
 
-```
+```text
 templates/index.html
 ```
 
@@ -236,12 +205,9 @@ Minimal:
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-    <title>AI Motion Twin</title>
-</head>
 <body>
-    <h2>Live Feed</h2>
-    <img src="/video" width="900">
+<h2>AI Motion Twin</h2>
+<img src="/video" width="900">
 </body>
 </html>
 ```
@@ -256,19 +222,21 @@ python main.py analyze --input ./videos --output ./dataset --merge
 
 ---
 
-## 🎨 Visualization Details
+## 🎨 Visualization
 
-* Left: Original video
-* Right: Skeleton canvas
-* Heatmap: Motion intensity
-* HUD shows:
+| Panel   | Description      |
+| ------- | ---------------- |
+| Left    | Original Video   |
+| Right   | Skeleton View    |
+| Heatmap | Motion Intensity |
 
-  * FPS
-  * People count
-  * Action
-  * Speed
-  * Energy
-  * Symmetry
+HUD displays:
+
+* FPS
+* People count
+* Action label
+* Energy
+* Symmetry
 
 ---
 
@@ -284,11 +252,11 @@ Each frame contains:
 
 ### Joint Data
 
-* x, y, z
-* visibility
-* normalized coords
+* x, y, z coordinates
+* visibility score
+* normalized coordinates
 
-### Motion Data
+### Motion
 
 * velocity (vx, vy)
 * acceleration (ax, ay)
@@ -296,8 +264,8 @@ Each frame contains:
 ### Metrics
 
 * joint angles
-* symmetry
-* energy
+* symmetry score
+* energy score
 
 ### Labels
 
@@ -306,83 +274,82 @@ Each frame contains:
 
 ---
 
-## ⚡ Performance Considerations
+## ⚡ Performance
 
-* Use ≤ 960px width
-* FPS depends on CPU & people count
-* Disable heatmap for better speed
-* Close background apps
+* Recommended resolution: ≤ 960px
+* Disable heatmap for higher FPS
+* Performance depends on CPU
 
 ---
 
-## ❌ Common Issues & Fixes
+## ❌ Common Issues
 
 ### NumPy Error
 
-```
+```text
 numpy.core.multiarray failed to import
 ```
 
 Fix:
 
-```
+```text
 numpy==1.26.4
 ```
 
 ### OpenCV Error
 
-```
+```text
 _ARRAY_API not found
 ```
 
 Fix:
 
-```
+```text
 opencv-python==4.9.0.80
 ```
 
 ### FastAPI Error
 
-```
+```text
 templates/index.html not found
 ```
 
 Fix:
-Create templates folder and file
+Create the required file.
 
 ---
 
 ## 🧪 Tech Stack
 
-| Layer      | Tech      |
-| ---------- | --------- |
-| Vision     | MediaPipe |
-| Processing | NumPy     |
-| Rendering  | OpenCV    |
-| Backend    | FastAPI   |
-| Server     | Uvicorn   |
-| Data       | Pandas    |
+| Layer      | Technology |
+| ---------- | ---------- |
+| Vision     | MediaPipe  |
+| Processing | NumPy      |
+| Rendering  | OpenCV     |
+| Backend    | FastAPI    |
+| Server     | Uvicorn    |
+| Data       | Pandas     |
 
 ---
 
 ## 🚧 Roadmap
 
 * Deep learning action classifier
-* Transformer-based analysis
+* Transformer-based motion modeling
 * YOLO pose integration
 * WebRTC streaming
 * GUI dashboard
-* Docker support
-* Cloud deployment
+* Docker deployment
+* Cloud hosting
 
 ---
 
 ## 🤝 Contributing
 
 ```bash
-git checkout -b feature/new-feature
-git commit -m "feat: add feature"
-git push origin feature/new-feature
+git checkout -b feature/your-feature
+git commit -m "feat: your feature"
+git push origin feature/your-feature
 ```
 
 ---
@@ -399,7 +366,6 @@ MIT License
 B.Tech — Artificial Intelligence & Machine Learning
 
 GitHub: [https://github.com/chaurasiyarishiraj84-alt](https://github.com/chaurasiyarishiraj84-alt)
-LinkedIn: [https://linkedin.com/in/your-profile](https://linkedin.com/in/your-profile)      convert this into terminal one for easy cp 
 
 ```
-
+```
